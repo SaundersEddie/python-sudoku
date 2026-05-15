@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Python Sudoku</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+    <main class="page">
+        <header class="header">
+            <h1>Python Sudoku</h1>
+            <p>Step 2: Generated solved board with validation</p>
+
+            {% if is_valid %}
+                <p class="status status-good">Board validation: PASS</p>
+            {% else %}
+                <p class="status status-bad">Board validation: FAIL</p>
+            {% endif %}
+        </header>
+
+        <section class="sudoku-board" aria-label="Solved Sudoku board">
+            {% for row in board %}
+                {% set row_index = loop.index0 %}
+                {% for value in row %}
+                    {% set col_index = loop.index0 %}
+                    <div
+                        class="
+                            cell
+                            {% if col_index in [2, 5] %} box-right {% endif %}
+                            {% if row_index in [2, 5] %} box-bottom {% endif %}
+                        "
+                    >
+                        {{ value }}
+                    </div>
+                {% endfor %}
+            {% endfor %}
+        </section>
+    </main>
+</body>
+</html>
