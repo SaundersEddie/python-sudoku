@@ -1,23 +1,27 @@
 from flask import Flask, jsonify, render_template, request
 
 from sudoku_engine import (
+    DIFFICULTY_CLUES,
     count_solutions,
-    create_puzzle,
     create_unique_puzzle,
     generate_solution,
+    get_normalized_difficulty,
+    get_visible_count_for_difficulty,
     is_valid_solution,
 )
 
 
 app = Flask(__name__)
 
-DEV_VISIBLE_COUNT = 40
-
 
 @app.route("/")
 def index():
+    requested_difficulty = request.args.get("difficulty", "easy")
+    difficulty = get_normalized_difficulty(requested_difficulty)
+    visible_count = get_visible_count_for_difficulty(difficulty)
+
     solution = generate_solution()
-    puzzle = create_unique_puzzle(solution, DEV_VISIBLE_COUNT)
+    puzzle = create_unique_puzzle(solution, visible_count=visible_count)
     is_valid = is_valid_solution(solution)
 
     return render_template(
@@ -25,7 +29,9 @@ def index():
         board=puzzle,
         solution=solution,
         is_valid=is_valid,
-        visible_count=DEV_VISIBLE_COUNT,
+        difficulty=difficulty,
+        difficulties=DIFFICULTY_CLUES,
+        visible_count=visible_count,
     )
 
 

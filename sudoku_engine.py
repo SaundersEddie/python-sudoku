@@ -1,10 +1,14 @@
 import random
 
-
 GRID_SIZE = 9
 BOX_SIZE = 3
 EXPECTED_VALUES = set(range(1, GRID_SIZE + 1))
 
+DIFFICULTY_CLUES = {
+    "easy": 40,
+    "medium": 35,
+    "hard": 32,
+}
 
 def pattern(row: int, col: int) -> int:
     """
@@ -299,3 +303,30 @@ def create_unique_puzzle(
         f"Could not create a unique puzzle with {visible_count} visible cells "
         f"after {max_attempts} attempts."
     )
+
+def get_visible_count_for_difficulty(difficulty: str) -> int:
+    """
+    Return the clue count for a difficulty name.
+
+    Unknown difficulty values default to easy.
+    """
+    normalized_difficulty = difficulty.lower()
+
+    return DIFFICULTY_CLUES.get(
+        normalized_difficulty,
+        DIFFICULTY_CLUES["easy"],
+    )
+
+
+def get_normalized_difficulty(difficulty: str) -> str:
+    """
+    Return a supported difficulty name.
+
+    Unknown difficulty values default to easy.
+    """
+    normalized_difficulty = difficulty.lower()
+
+    if normalized_difficulty in DIFFICULTY_CLUES:
+        return normalized_difficulty
+
+    return "easy"

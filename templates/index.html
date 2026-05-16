@@ -10,7 +10,7 @@
     <main class="page">
         <header class="header">
             <h1>Python Sudoku</h1>
-            <p>Step 6: Unique board with solution testing</p>
+            <p>Step 8: Player input with solution validation</p>
 
             {% if is_valid %}
                 <p class="status status-good">Board validation: PASS</p>
@@ -18,8 +18,23 @@
                 <p class="status status-bad">Board validation: FAIL</p>
             {% endif %}
 
-            <p class="sub-status">{{ visible_count }} visible clues</p>
+            <p class="sub-status">
+                Difficulty: {{ difficulty | title }} |
+                {{ visible_count }} visible clues
+            </p>
         </header>
+
+        <nav class="difficulty-nav" aria-label="Difficulty selection">
+            {% for difficulty_name, clue_count in difficulties.items() %}
+                <a
+                    class="difficulty-link {% if difficulty_name == difficulty %} active {% endif %}"
+                    href="{{ url_for('index', difficulty=difficulty_name) }}"
+                >
+                    {{ difficulty_name | title }}
+                    <span>{{ clue_count }}</span>
+                </a>
+            {% endfor %}
+        </nav>
 
         <section class="controls" aria-label="Developer controls">
             <button id="toggleSolutionButton" class="button" type="button">
@@ -41,27 +56,46 @@
                     {% set solution_value = solution[row_index][col_index] %}
                     {% set is_given = value != 0 %}
 
-                    <div
+                    <button
                         class="
                             cell
                             {% if is_given %} given {% else %} empty {% endif %}
                             {% if col_index in [2, 5] %} box-right {% endif %}
                             {% if row_index in [2, 5] %} box-bottom {% endif %}
                         "
+                        type="button"
+                        data-row="{{ row_index }}"
+                        data-col="{{ col_index }}"
                         data-solution="{{ solution_value }}"
                         data-is-given="{{ 'true' if is_given else 'false' }}"
                     >
                         {% if is_given %}
                             {{ value }}
                         {% endif %}
-                    </div>
+                    </button>
                 {% endfor %}
             {% endfor %}
+        </section>
+
+        <section class="number-pad" aria-label="Number input">
+            {% for number in range(1, 10) %}
+                <button class="number-button" type="button" data-number="{{ number }}">
+                    {{ number }}
+                </button>
+            {% endfor %}
+
+            <button id="clearCellButton" class="number-button clear-button" type="button">
+                Clear
+            </button>
         </section>
     </main>
 
     <script id="puzzleData" type="application/json">
         {{ board | tojson }}
+    </script>
+
+    <script id="solutionData" type="application/json">
+        {{ solution | tojson }}
     </script>
 
     <script src="{{ url_for('static', filename='sudoku-dev.js') }}"></script>
