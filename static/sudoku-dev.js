@@ -2,6 +2,7 @@ const toggleSolutionButton = document.querySelector("#toggleSolutionButton");
 const testSolutionButton = document.querySelector("#testSolutionButton");
 const clearCellButton = document.querySelector("#clearCellButton");
 const newPuzzleButton = document.querySelector("#newPuzzleButton");
+const notesModeButton = document.querySelector("#notesModeButton");
 
 const solutionTestResult = document.querySelector("#solutionTestResult");
 const moveCountElement = document.querySelector("#moveCount");
@@ -12,6 +13,9 @@ const finalMoves = document.querySelector("#finalMoves");
 
 const puzzleDataElement = document.querySelector("#puzzleData");
 const solutionDataElement = document.querySelector("#solutionData");
+const pauseButton = document.querySelector("#pauseButton");
+const resumeButton = document.querySelector("#resumeButton");
+const pauseOverlay = document.querySelector("#pauseOverlay");
 
 const cells = document.querySelectorAll(".cell");
 const numberButtons = document.querySelectorAll(".number-button[data-number]");
@@ -22,10 +26,15 @@ const solutionBoard = JSON.parse(solutionDataElement.textContent);
 let selectedCell = null;
 let isSolutionVisible = false;
 let isGameComplete = false;
+let isNotesMode = false;
+let isPaused = false;
+let wasTimerRunningBeforePause = false;
 
 let moveCount = 0;
 let elapsedSeconds = 0;
 let timerIntervalId = null;
+
+const notesByCell = new Map();
 
 function formatTime(totalSeconds) {
     const minutes = Math.floor(totalSeconds / 60);
@@ -60,12 +69,97 @@ function incrementMoveCount() {
 }
 
 function getCellValue(cell) {
+    const finalValue = cell.dataset.finalValue;
+
+    if (finalValue) {
+        return Number(finalValue);
+    }
+
+    if (cell.classList.contains("has-notes")) {
+        return 0;
+    }
+
     const text = cell.textContent.trim();
+
     return text === "" ? 0 : Number(text);
+}
+
+function setFinalCellValue(cell, value) {
+    if (value === 0) {
+        delete cell.dataset.finalValue;
+        cell.textContent = "";
+        return;
+    }
+
+    cell.dataset.finalValue = String(value);
+    cell.textContent = value;
 }
 
 function isGivenCell(cell) {
     return cell.dataset.isGiven === "true";
+}
+
+function getCellKey(cell) {
+    return `${cell.dataset.row}-${cell.dataset.col}`;
+}
+
+function clearNotesForCell(cell) {
+    const key = getCellKey(cell);
+    notesByCell.delete(key);
+    cell.classList.remove("has-notes");
+}
+
+function renderNotesForCell(cell) {
+    const key = getCellKey(cell);
+    const notes = notesByCell.get(key);
+
+    if (!notes || notes.size === 0) {
+        cell.innerHTML = "";
+        cell.classList.remove("has-notes");
+        return;
+    }
+
+    const noteGrid = document.createElement("span");
+    noteGrid.className = "notes-grid";
+
+    for (let number = 1; number <= 9; number += 1) {
+        const noteSlot = document.createElement("span");
+        noteSlot.className = "note-slot";
+        noteSlot.textContent = notes.has(number) ? number : "";
+        noteGrid.appendChild(noteSlot);
+    }
+
+    cell.innerHTML = "";
+    cell.appendChild(noteGrid);
+    cell.classList.add("has-notes");
+}
+
+function toggleNoteForSelectedCell(number) {
+    if (!selectedCell || isGivenCell(selectedCell) || isSolutionVisible || isGameComplete) {
+        return;
+    }
+
+    if (getCellValue(selectedCell) !== 0) {
+        return;
+    }
+
+    const key = getCellKey(selectedCell);
+    const notes = notesByCell.get(key) || new Set();
+
+    if (notes.has(number)) {
+        notes.delete(number);
+    } else {
+        notes.add(number);
+    }
+
+    if (notes.size === 0) {
+        notesByCell.delete(key);
+    } else {
+        notesByCell.set(key, notes);
+    }
+
+    renderNotesForCell(selectedCell);
+    refreshHighlights();
 }
 
 function clearHighlightClasses() {
@@ -154,7 +248,7 @@ function updateCompletedNumberButtons() {
 }
 
 function selectCell(cell) {
-    if (isGameComplete) {
+    if (isGameComplete || isPaused) {
         return;
     }
 
@@ -201,7 +295,12 @@ function checkForCompletion() {
 }
 
 function setCellNumber(number) {
-    if (!selectedCell || isGivenCell(selectedCell) || isSolutionVisible || isGameComplete) {
+    if (!selectedCell || isGivenCell(selectedCell) || isSolutionVisible || isGameComplete || isPaused) {
+        return;
+    }
+
+    if (isNotesMode) {
+        toggleNoteForSelectedCell(number);
         return;
     }
 
@@ -212,12 +311,13 @@ function setCellNumber(number) {
     }
 
     startTimerIfNeeded();
+    clearNotesForCell(selectedCell);
 
     const row = Number(selectedCell.dataset.row);
     const col = Number(selectedCell.dataset.col);
     const correctValue = solutionBoard[row][col];
 
-    selectedCell.textContent = number;
+    setFinalCellValue(selectedCell, number);
     selectedCell.classList.remove("correct-entry", "wrong-entry");
 
     if (number === correctValue) {
@@ -233,37 +333,44 @@ function setCellNumber(number) {
 }
 
 function clearSelectedCell() {
-    if (!selectedCell || isGivenCell(selectedCell) || isSolutionVisible || isGameComplete) {
+    if (!selectedCell || isGivenCell(selectedCell) || isSolutionVisible || isGameComplete || isPaused) {
         return;
     }
 
     const currentValue = getCellValue(selectedCell);
+    const key = getCellKey(selectedCell);
+    const hasNotes = notesByCell.has(key);
 
-    if (currentValue === 0) {
+    if (currentValue === 0 && !hasNotes) {
         return;
     }
 
-    startTimerIfNeeded();
+    if (currentValue !== 0) {
+        startTimerIfNeeded();
+        incrementMoveCount();
+    }
 
-    selectedCell.textContent = "";
+    setFinalCellValue(selectedCell, 0);
+    clearNotesForCell(selectedCell);
     selectedCell.classList.remove("correct-entry", "wrong-entry");
 
-    incrementMoveCount();
     refreshHighlights();
     updateCompletedNumberButtons();
 }
 
 function showSolution() {
-    if (isGameComplete) {
+    if (isGameComplete || isPaused) {
         return;
     }
 
     cells.forEach((cell) => {
         if (!isGivenCell(cell)) {
             cell.dataset.playerValue = getCellValue(cell);
-            cell.textContent = cell.dataset.solution;
+            cell.dataset.hadNotes = notesByCell.has(getCellKey(cell)) ? "true" : "false";
+
+            setFinalCellValue(cell, Number(cell.dataset.solution));
             cell.classList.add("solution-value");
-            cell.classList.remove("correct-entry", "wrong-entry");
+            cell.classList.remove("correct-entry", "wrong-entry", "has-notes");
         }
     });
 
@@ -278,8 +385,12 @@ function hideSolution() {
         if (!isGivenCell(cell)) {
             const savedValue = Number(cell.dataset.playerValue || 0);
 
-            cell.textContent = savedValue === 0 ? "" : savedValue;
             cell.classList.remove("solution-value");
+            setFinalCellValue(cell, savedValue);
+
+            if (savedValue === 0 && cell.dataset.hadNotes === "true") {
+                renderNotesForCell(cell);
+            }
 
             if (savedValue !== 0) {
                 const row = Number(cell.dataset.row);
@@ -292,6 +403,9 @@ function hideSolution() {
                     cell.classList.add("wrong-entry");
                 }
             }
+
+            delete cell.dataset.playerValue;
+            delete cell.dataset.hadNotes;
         }
     });
 
@@ -340,8 +454,48 @@ async function testSolution() {
     }
 }
 
+function toggleNotesMode() {
+    if (isGameComplete || isSolutionVisible || isPaused) {
+        return;
+    }
+
+    isNotesMode = !isNotesMode;
+
+    notesModeButton.textContent = isNotesMode ? "Notes: On" : "Notes: Off";
+    notesModeButton.classList.toggle("active-mode", isNotesMode);
+}
+
 function startNewPuzzle() {
     window.location.reload();
+}
+
+function pauseGame() {
+    if (isGameComplete || isPaused) {
+        return;
+    }
+
+    wasTimerRunningBeforePause = timerIntervalId !== null;
+    stopTimer();
+
+    isPaused = true;
+    document.body.classList.add("paused");
+    pauseOverlay.classList.remove("hidden");
+}
+
+function resumeGame() {
+    if (!isPaused) {
+        return;
+    }
+
+    isPaused = false;
+    document.body.classList.remove("paused");
+    pauseOverlay.classList.add("hidden");
+
+    if (wasTimerRunningBeforePause) {
+        startTimerIfNeeded();
+    }
+
+    wasTimerRunningBeforePause = false;
 }
 
 cells.forEach((cell) => {
@@ -357,8 +511,11 @@ numberButtons.forEach((button) => {
     });
 });
 
+pauseButton.addEventListener("click", pauseGame);
+resumeButton.addEventListener("click", resumeGame);
 clearCellButton.addEventListener("click", clearSelectedCell);
 newPuzzleButton.addEventListener("click", startNewPuzzle);
+notesModeButton.addEventListener("click", toggleNotesMode);
 
 toggleSolutionButton.addEventListener("click", () => {
     if (isSolutionVisible) {

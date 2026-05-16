@@ -10,7 +10,7 @@
     <main class="page">
         <header class="header">
             <h1>Python Sudoku</h1>
-            <p>Step 9: Playable Sudoku prototype</p>
+            <p>Step 10: Playable Sudoku prototype with notes</p>
 
             {% if is_valid %}
                 <p class="status status-good">Board validation: PASS</p>
@@ -46,6 +46,14 @@
                 New Puzzle
             </button>
 
+            <button id="pauseButton" class="button button-secondary" type="button">
+                Pause
+            </button>
+
+            <button id="notesModeButton" class="button button-secondary" type="button">
+                Notes: Off
+            </button>
+
             <button id="toggleSolutionButton" class="button" type="button">
                 Show Solution
             </button>
@@ -64,6 +72,14 @@
                 Time: <span id="finalTime">00:00</span> |
                 Moves: <span id="finalMoves">0</span>
             </p>
+        </section>
+
+        <section id="pauseOverlay" class="pause-overlay hidden" aria-live="polite">
+            <h2>Paused</h2>
+            <p>Game timer stopped.</p>
+            <button id="resumeButton" class="button" type="button">
+                Resume
+            </button>
         </section>
 
         <section class="sudoku-board" aria-label="Sudoku puzzle board">
