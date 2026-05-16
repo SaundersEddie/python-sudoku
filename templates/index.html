@@ -10,7 +10,7 @@
     <main class="page">
         <header class="header">
             <h1>Python Sudoku</h1>
-            <p>Step 4: Puzzle board with solution reveal</p>
+            <p>Step 6: Unique board with solution testing</p>
 
             {% if is_valid %}
                 <p class="status status-good">Board validation: PASS</p>
@@ -25,7 +25,13 @@
             <button id="toggleSolutionButton" class="button" type="button">
                 Show Solution
             </button>
+
+            <button id="testSolutionButton" class="button button-secondary" type="button">
+                Test Solution
+            </button>
         </section>
+
+        <p id="solutionTestResult" class="solution-test-result" aria-live="polite"></p>
 
         <section class="sudoku-board" aria-label="Sudoku puzzle board">
             {% for row in board %}
@@ -53,6 +59,10 @@
             {% endfor %}
         </section>
     </main>
+
+    <script id="puzzleData" type="application/json">
+        {{ board | tojson }}
+    </script>
 
     <script src="{{ url_for('static', filename='sudoku-dev.js') }}"></script>
 </body>

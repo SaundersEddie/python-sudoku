@@ -269,3 +269,33 @@ def count_solutions(board: list[list[int]], limit: int = 2) -> int:
     solve()
 
     return solution_count
+
+def create_unique_puzzle(
+    solution: list[list[int]],
+    visible_count: int,
+    max_attempts: int = 100,
+) -> list[list[int]]:
+    """
+    Create a puzzle board that has exactly one solution.
+
+    This repeatedly creates puzzle boards from the provided solution
+    until one is found with a unique solution.
+
+    Raises RuntimeError if no unique puzzle is found within max_attempts.
+    """
+    if visible_count < 0 or visible_count > GRID_SIZE * GRID_SIZE:
+        raise ValueError("visible_count must be between 0 and 81.")
+
+    if max_attempts < 1:
+        raise ValueError("max_attempts must be at least 1.")
+
+    for _ in range(max_attempts):
+        puzzle = create_puzzle(solution, visible_count)
+
+        if count_solutions(puzzle, limit=2) == 1:
+            return puzzle
+
+    raise RuntimeError(
+        f"Could not create a unique puzzle with {visible_count} visible cells "
+        f"after {max_attempts} attempts."
+    )
