@@ -414,7 +414,7 @@ body {
 
 body.paused .sudoku-board,
 body.paused .number-pad {
-    opacity: 0.25;
-    filter: blur(2px);
+    visibility: hidden;
     pointer-events: none;
 }
+

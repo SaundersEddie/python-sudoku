@@ -142,6 +142,8 @@ function toggleNoteForSelectedCell(number) {
     if (getCellValue(selectedCell) !== 0) {
         return;
     }
+    
+    startTimerIfNeeded();
 
     const key = getCellKey(selectedCell);
     const notes = notesByCell.get(key) || new Set();
