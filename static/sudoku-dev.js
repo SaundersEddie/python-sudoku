@@ -8,14 +8,19 @@ const solutionDataElement = document.querySelector("#solutionData");
 
 const cells = document.querySelectorAll(".cell");
 const numberButtons = document.querySelectorAll(".number-button[data-number]");
+const moveCountElement = document.querySelector("#moveCount");
 
 const puzzleBoard = JSON.parse(puzzleDataElement.textContent);
 const solutionBoard = JSON.parse(solutionDataElement.textContent);
 
 let selectedCell = null;
 let isSolutionVisible = false;
-const moveCountElement = document.querySelector("#moveCount");
 let moveCount = 0;
+
+function incrementMoveCount() {
+    moveCount += 1;
+    moveCountElement.textContent = moveCount;
+}
 
 function getCellValue(cell) {
     const text = cell.textContent.trim();
@@ -124,6 +129,12 @@ function setCellNumber(number) {
         return;
     }
 
+    const currentValue = getCellValue(selectedCell);
+
+    if (currentValue === number) {
+        return;
+    }
+
     const row = Number(selectedCell.dataset.row);
     const col = Number(selectedCell.dataset.col);
     const correctValue = solutionBoard[row][col];
@@ -131,12 +142,14 @@ function setCellNumber(number) {
     selectedCell.textContent = number;
     selectedCell.classList.remove("correct-entry", "wrong-entry");
 
+
     if (number === correctValue) {
         selectedCell.classList.add("correct-entry");
     } else {
         selectedCell.classList.add("wrong-entry");
     }
 
+    incrementMoveCount();
     refreshHighlights();
     updateCompletedNumberButtons();
 }
@@ -149,6 +162,7 @@ function clearSelectedCell() {
     selectedCell.textContent = "";
     selectedCell.classList.remove("correct-entry", "wrong-entry");
 
+    incrementMoveCount();
     refreshHighlights();
     updateCompletedNumberButtons();
 }
@@ -236,10 +250,7 @@ async function testSolution() {
     }
 }
 
-function incrementMoveCount() {
-    moveCount += 1;
-    moveCountElement.textContent = moveCount;
-}
+
 
 cells.forEach((cell) => {
     cell.addEventListener("click", () => {

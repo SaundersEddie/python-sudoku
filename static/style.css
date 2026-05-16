@@ -314,3 +314,9 @@ body {
     outline-offset: -3px;
     background: #dddddd;
 }
+
+.game-stat {
+    margin: 8px 0 0;
+    color: #333;
+    font-weight: 700;
+}
