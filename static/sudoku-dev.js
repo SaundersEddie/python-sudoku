@@ -1,21 +1,58 @@
 const toggleSolutionButton = document.querySelector("#toggleSolutionButton");
 const testSolutionButton = document.querySelector("#testSolutionButton");
 const clearCellButton = document.querySelector("#clearCellButton");
+const newPuzzleButton = document.querySelector("#newPuzzleButton");
+
 const solutionTestResult = document.querySelector("#solutionTestResult");
+const moveCountElement = document.querySelector("#moveCount");
+const timerDisplay = document.querySelector("#timerDisplay");
+const winMessage = document.querySelector("#winMessage");
+const finalTime = document.querySelector("#finalTime");
+const finalMoves = document.querySelector("#finalMoves");
 
 const puzzleDataElement = document.querySelector("#puzzleData");
 const solutionDataElement = document.querySelector("#solutionData");
 
 const cells = document.querySelectorAll(".cell");
 const numberButtons = document.querySelectorAll(".number-button[data-number]");
-const moveCountElement = document.querySelector("#moveCount");
 
 const puzzleBoard = JSON.parse(puzzleDataElement.textContent);
 const solutionBoard = JSON.parse(solutionDataElement.textContent);
 
 let selectedCell = null;
 let isSolutionVisible = false;
+let isGameComplete = false;
+
 let moveCount = 0;
+let elapsedSeconds = 0;
+let timerIntervalId = null;
+
+function formatTime(totalSeconds) {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+function startTimerIfNeeded() {
+    if (timerIntervalId !== null || isGameComplete) {
+        return;
+    }
+
+    timerIntervalId = window.setInterval(() => {
+        elapsedSeconds += 1;
+        timerDisplay.textContent = formatTime(elapsedSeconds);
+    }, 1000);
+}
+
+function stopTimer() {
+    if (timerIntervalId === null) {
+        return;
+    }
+
+    window.clearInterval(timerIntervalId);
+    timerIntervalId = null;
+}
 
 function incrementMoveCount() {
     moveCount += 1;
@@ -117,6 +154,10 @@ function updateCompletedNumberButtons() {
 }
 
 function selectCell(cell) {
+    if (isGameComplete) {
+        return;
+    }
+
     selectedCell = cell;
     refreshHighlights();
 
@@ -124,8 +165,43 @@ function selectCell(cell) {
     solutionTestResult.className = "solution-test-result";
 }
 
+function isBoardCompleteAndCorrect() {
+    for (const cell of cells) {
+        const row = Number(cell.dataset.row);
+        const col = Number(cell.dataset.col);
+        const value = getCellValue(cell);
+
+        if (value !== solutionBoard[row][col]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function showWinMessage() {
+    isGameComplete = true;
+    stopTimer();
+
+    finalTime.textContent = formatTime(elapsedSeconds);
+    finalMoves.textContent = moveCount;
+
+    winMessage.classList.remove("hidden");
+    clearHighlightClasses();
+}
+
+function checkForCompletion() {
+    if (isGameComplete) {
+        return;
+    }
+
+    if (isBoardCompleteAndCorrect()) {
+        showWinMessage();
+    }
+}
+
 function setCellNumber(number) {
-    if (!selectedCell || isGivenCell(selectedCell) || isSolutionVisible) {
+    if (!selectedCell || isGivenCell(selectedCell) || isSolutionVisible || isGameComplete) {
         return;
     }
 
@@ -135,13 +211,14 @@ function setCellNumber(number) {
         return;
     }
 
+    startTimerIfNeeded();
+
     const row = Number(selectedCell.dataset.row);
     const col = Number(selectedCell.dataset.col);
     const correctValue = solutionBoard[row][col];
 
     selectedCell.textContent = number;
     selectedCell.classList.remove("correct-entry", "wrong-entry");
-
 
     if (number === correctValue) {
         selectedCell.classList.add("correct-entry");
@@ -152,12 +229,21 @@ function setCellNumber(number) {
     incrementMoveCount();
     refreshHighlights();
     updateCompletedNumberButtons();
+    checkForCompletion();
 }
 
 function clearSelectedCell() {
-    if (!selectedCell || isGivenCell(selectedCell) || isSolutionVisible) {
+    if (!selectedCell || isGivenCell(selectedCell) || isSolutionVisible || isGameComplete) {
         return;
     }
+
+    const currentValue = getCellValue(selectedCell);
+
+    if (currentValue === 0) {
+        return;
+    }
+
+    startTimerIfNeeded();
 
     selectedCell.textContent = "";
     selectedCell.classList.remove("correct-entry", "wrong-entry");
@@ -168,6 +254,10 @@ function clearSelectedCell() {
 }
 
 function showSolution() {
+    if (isGameComplete) {
+        return;
+    }
+
     cells.forEach((cell) => {
         if (!isGivenCell(cell)) {
             cell.dataset.playerValue = getCellValue(cell);
@@ -250,7 +340,9 @@ async function testSolution() {
     }
 }
 
-
+function startNewPuzzle() {
+    window.location.reload();
+}
 
 cells.forEach((cell) => {
     cell.addEventListener("click", () => {
@@ -266,6 +358,7 @@ numberButtons.forEach((button) => {
 });
 
 clearCellButton.addEventListener("click", clearSelectedCell);
+newPuzzleButton.addEventListener("click", startNewPuzzle);
 
 toggleSolutionButton.addEventListener("click", () => {
     if (isSolutionVisible) {

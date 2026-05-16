@@ -320,3 +320,36 @@ body {
     color: #333;
     font-weight: 700;
 }
+
+.game-stats {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin: 12px 0 0;
+    font-weight: 700;
+    color: #333;
+}
+
+.win-message {
+    width: min(94vw, 540px);
+    margin: 0 auto 18px;
+    padding: 16px;
+    border: 1px solid #b7d7bd;
+    border-radius: 16px;
+    background: #e8f5e9;
+    color: #1b4332;
+    text-align: center;
+}
+
+.win-message h2 {
+    margin: 0 0 6px;
+}
+
+.win-message p {
+    margin: 0;
+    font-weight: 700;
+}
+
+.hidden {
+    display: none;
+}
