@@ -10,32 +10,50 @@
     <main class="page">
         <header class="header">
             <h1>Python Sudoku</h1>
-            <p>Step 2: Generated solved board with validation</p>
+            <p>Step 4: Puzzle board with solution reveal</p>
 
             {% if is_valid %}
                 <p class="status status-good">Board validation: PASS</p>
             {% else %}
                 <p class="status status-bad">Board validation: FAIL</p>
             {% endif %}
+
+            <p class="sub-status">{{ visible_count }} visible clues</p>
         </header>
 
-        <section class="sudoku-board" aria-label="Solved Sudoku board">
+        <section class="controls" aria-label="Developer controls">
+            <button id="toggleSolutionButton" class="button" type="button">
+                Show Solution
+            </button>
+        </section>
+
+        <section class="sudoku-board" aria-label="Sudoku puzzle board">
             {% for row in board %}
                 {% set row_index = loop.index0 %}
                 {% for value in row %}
                     {% set col_index = loop.index0 %}
+                    {% set solution_value = solution[row_index][col_index] %}
+                    {% set is_given = value != 0 %}
+
                     <div
                         class="
                             cell
+                            {% if is_given %} given {% else %} empty {% endif %}
                             {% if col_index in [2, 5] %} box-right {% endif %}
                             {% if row_index in [2, 5] %} box-bottom {% endif %}
                         "
+                        data-solution="{{ solution_value }}"
+                        data-is-given="{{ 'true' if is_given else 'false' }}"
                     >
-                        {{ value }}
+                        {% if is_given %}
+                            {{ value }}
+                        {% endif %}
                     </div>
                 {% endfor %}
             {% endfor %}
         </section>
     </main>
+
+    <script src="{{ url_for('static', filename='sudoku-dev.js') }}"></script>
 </body>
 </html>
