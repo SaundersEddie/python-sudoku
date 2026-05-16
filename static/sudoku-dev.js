@@ -14,6 +14,8 @@ const solutionBoard = JSON.parse(solutionDataElement.textContent);
 
 let selectedCell = null;
 let isSolutionVisible = false;
+const moveCountElement = document.querySelector("#moveCount");
+let moveCount = 0;
 
 function getCellValue(cell) {
     const text = cell.textContent.trim();
@@ -46,10 +48,10 @@ function cellsAreInSameBox(firstCell, secondCell) {
     );
 }
 
-function applyCellHighlights(selectedCell) {
-    const selectedRow = Number(selectedCell.dataset.row);
-    const selectedCol = Number(selectedCell.dataset.col);
-    const selectedValue = getCellValue(selectedCell);
+function applyCellHighlights(cellToHighlight) {
+    const selectedRow = Number(cellToHighlight.dataset.row);
+    const selectedCol = Number(cellToHighlight.dataset.col);
+    const selectedValue = getCellValue(cellToHighlight);
 
     cells.forEach((cell) => {
         const row = Number(cell.dataset.row);
@@ -58,7 +60,7 @@ function applyCellHighlights(selectedCell) {
 
         const sameRow = row === selectedRow;
         const sameCol = col === selectedCol;
-        const sameBox = cellsAreInSameBox(selectedCell, cell);
+        const sameBox = cellsAreInSameBox(cellToHighlight, cell);
         const sameValue = selectedValue !== 0 && value === selectedValue;
 
         if (sameRow || sameCol || sameBox) {
@@ -70,14 +72,48 @@ function applyCellHighlights(selectedCell) {
         }
     });
 
-    selectedCell.classList.add("selected");
+    cellToHighlight.classList.add("selected");
+}
+
+function refreshHighlights() {
+    if (!selectedCell) {
+        return;
+    }
+
+    clearHighlightClasses();
+    applyCellHighlights(selectedCell);
+}
+
+function updateCompletedNumberButtons() {
+    const numberCounts = new Map();
+
+    for (let number = 1; number <= 9; number += 1) {
+        numberCounts.set(number, 0);
+    }
+
+    cells.forEach((cell) => {
+        if (cell.classList.contains("solution-value")) {
+            return;
+        }
+
+        const value = getCellValue(cell);
+
+        if (value >= 1 && value <= 9) {
+            numberCounts.set(value, numberCounts.get(value) + 1);
+        }
+    });
+
+    numberButtons.forEach((button) => {
+        const number = Number(button.dataset.number);
+        const isComplete = numberCounts.get(number) >= 9;
+
+        button.classList.toggle("number-complete", isComplete);
+    });
 }
 
 function selectCell(cell) {
-    clearHighlightClasses();
-
     selectedCell = cell;
-    applyCellHighlights(selectedCell);
+    refreshHighlights();
 
     solutionTestResult.textContent = "";
     solutionTestResult.className = "solution-test-result";
@@ -101,8 +137,7 @@ function setCellNumber(number) {
         selectedCell.classList.add("wrong-entry");
     }
 
-    clearHighlightClasses();
-    applyCellHighlights(selectedCell);
+    refreshHighlights();
     updateCompletedNumberButtons();
 }
 
@@ -114,8 +149,7 @@ function clearSelectedCell() {
     selectedCell.textContent = "";
     selectedCell.classList.remove("correct-entry", "wrong-entry");
 
-    clearHighlightClasses();
-    applyCellHighlights(selectedCell);
+    refreshHighlights();
     updateCompletedNumberButtons();
 }
 
@@ -131,7 +165,8 @@ function showSolution() {
 
     toggleSolutionButton.textContent = "Hide Solution";
     isSolutionVisible = true;
-    updateCompletedNumberButtons();
+
+    refreshHighlights();
 }
 
 function hideSolution() {
@@ -158,6 +193,8 @@ function hideSolution() {
 
     toggleSolutionButton.textContent = "Show Solution";
     isSolutionVisible = false;
+
+    refreshHighlights();
     updateCompletedNumberButtons();
 }
 
@@ -199,31 +236,11 @@ async function testSolution() {
     }
 }
 
-function updateCompletedNumberButtons() {
-    const numberCounts = new Map();
-
-    for (let number = 1; number <= 9; number += 1) {
-        numberCounts.set(number, 0);
-    }
-
-    cells.forEach((cell) => {
-        const value = getCellValue(cell);
-
-        if (value >= 1 && value <= 9) {
-            numberCounts.set(value, numberCounts.get(value) + 1);
-        }
-    });
-
-    numberButtons.forEach((button) => {
-        const number = Number(button.dataset.number);
-        const isComplete = numberCounts.get(number) >= 9;
-
-        button.classList.toggle("number-complete", isComplete);
-        button.disabled = isComplete;
-    });
+function incrementMoveCount() {
+    moveCount += 1;
+    moveCountElement.textContent = moveCount;
 }
 
-updateCompletedNumberButtons();
 cells.forEach((cell) => {
     cell.addEventListener("click", () => {
         selectCell(cell);
@@ -248,3 +265,5 @@ toggleSolutionButton.addEventListener("click", () => {
 });
 
 testSolutionButton.addEventListener("click", testSolution);
+
+updateCompletedNumberButtons();

@@ -267,6 +267,18 @@ body {
     background: #eeeeee;
 }
 
+.number-button.number-complete {
+    background: #d8d8d8;
+    border-color: #c4c4c4;
+    color: #777;
+    cursor: default;
+    opacity: 0.65;
+}
+
+.number-button.number-complete:hover {
+    background: #d8d8d8;
+}
+
 .clear-button {
     grid-column: span 1;
     font-size: 0.95rem;
