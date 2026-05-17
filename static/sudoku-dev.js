@@ -16,6 +16,7 @@ const solutionDataElement = document.querySelector("#solutionData");
 const pauseButton = document.querySelector("#pauseButton");
 const resumeButton = document.querySelector("#resumeButton");
 const pauseOverlay = document.querySelector("#pauseOverlay");
+const themeButton = document.querySelector("#themeButton");
 
 const cells = document.querySelectorAll(".cell");
 const numberButtons = document.querySelectorAll(".number-button[data-number]");
@@ -29,6 +30,7 @@ let isGameComplete = false;
 let isNotesMode = false;
 let isPaused = false;
 let wasTimerRunningBeforePause = false;
+const THEME_STORAGE_KEY = "python-sudoku-theme";
 
 let moveCount = 0;
 let elapsedSeconds = 0;
@@ -142,6 +144,8 @@ function toggleNoteForSelectedCell(number) {
     if (getCellValue(selectedCell) !== 0) {
         return;
     }
+    
+    startTimerIfNeeded();
 
     const key = getCellKey(selectedCell);
     const notes = notesByCell.get(key) || new Set();
@@ -498,6 +502,25 @@ function resumeGame() {
     wasTimerRunningBeforePause = false;
 }
 
+function applyTheme(theme) {
+    const normalizedTheme = theme === "dark" ? "dark" : "light";
+
+    document.body.classList.toggle("dark-theme", normalizedTheme === "dark");
+    themeButton.textContent = normalizedTheme === "dark" ? "Theme: Dark" : "Theme: Light";
+
+    localStorage.setItem(THEME_STORAGE_KEY, normalizedTheme);
+}
+
+function toggleTheme() {
+    const isDark = document.body.classList.contains("dark-theme");
+    applyTheme(isDark ? "light" : "dark");
+}
+
+function loadSavedTheme() {
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || "light";
+    applyTheme(savedTheme);
+}
+
 cells.forEach((cell) => {
     cell.addEventListener("click", () => {
         selectCell(cell);
@@ -511,6 +534,7 @@ numberButtons.forEach((button) => {
     });
 });
 
+themeButton.addEventListener("click", toggleTheme);
 pauseButton.addEventListener("click", pauseGame);
 resumeButton.addEventListener("click", resumeGame);
 clearCellButton.addEventListener("click", clearSelectedCell);
@@ -528,3 +552,4 @@ toggleSolutionButton.addEventListener("click", () => {
 testSolutionButton.addEventListener("click", testSolution);
 
 updateCompletedNumberButtons();
+loadSavedTheme();
