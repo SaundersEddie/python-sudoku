@@ -1,183 +1,181 @@
-# Created by .ignore support plugin (hsz.mobi)
-### Python template
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+# Python Sudoku
 
-# C extensions
-*.so
+A playable Python/Flask Sudoku prototype built as a reference implementation for future browser-game work.
 
-# Distribution / packaging
-.Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-*.egg-info/
-.installed.cfg
-*.egg
+This project was created to prove the core Sudoku logic, validation, and gameplay flow before building a more polished JavaScript version for another project, such as EddiesGames.xyz.
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+## Project Status
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+This repo is considered a completed Python prototype.
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*,cover
-.hypothesis/
+The current version is playable in the browser and includes the main gameplay systems needed for a Sudoku game. Further polish, mobile-first layout work, leaderboard integration, sharing, and production game styling are planned for the later JavaScript/browser-game version rather than this Python prototype.
 
-# Translations
-*.mo
-*.pot
+A mobile version is planned conceptually, but it is not actively being worked on in this repo. The Python version has served its purpose as a working concept and reference build.
 
-# Django stuff:
-*.log
-local_settings.py
+## Features
 
-# Flask stuff:
-instance/
-.webassets-cache
+- Flask web app
+- Random solved Sudoku board generation
+- Unique-solution puzzle generation
+- Easy, Medium, and Hard difficulty settings
+- Solver-based solution validation
+- Browser-rendered Sudoku board
+- Player input with answer-key validation
+- Notes / pencil marks
+- Timer
+- Move count
+- Pause mode
+- Board hidden during pause
+- Light and dark mode
+- Row, column, box, and matching-number highlighting
+- Completed-number indicators
+- New Puzzle button
+- Show Solution developer option
+- Test Solution developer option
+- Completion detection and win message
+- Automated pytest coverage
+- Batch board generation and validation script
 
-# Scrapy stuff:
-.scrapy
+## Difficulty Settings
 
-# Sphinx documentation
-docs/_build/
+The current difficulty levels use visible clue counts:
 
-# PyBuilder
-target/
+- Easy: 40 visible clues
+- Medium: 35 visible clues
+- Hard: 32 visible clues
 
-# IPython Notebook
-.ipynb_checkpoints
+These values were tested during development using batch board generation. The generator successfully produced unique-solution puzzles at the current Hard setting across 1,000-board validation runs.
 
-# pyenv
-.python-version
+Difficulty in this prototype is clue-count based. Future versions may use more advanced difficulty scoring based on solving techniques.
 
-# celery beat schedule file
-celerybeat-schedule
+## Testing
 
-# dotenv
-.env
+The project includes pytest coverage for:
 
-# virtualenv
-venv/
-ENV/
+- Valid solved board generation
+- Invalid board rejection
+- Puzzle creation
+- Unique puzzle generation
+- Solver behavior
+- Difficulty configuration
+- API solution testing
 
-# Spyder project settings
-.spyderproject
+The solver can detect:
 
-# Rope project settings
-.ropeproject
-### VirtualEnv template
-# Virtualenv
-.venv/
-venv/
-env/
-ENV/
+- No solution
+- One unique solution
+- Multiple solutions
 
-# Common virtualenv files
-pyvenv.cfg
-pip-selfcheck.json
+Run tests with:
 
-### JetBrains template
-# Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
-# Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
+    pytest -v
 
-# User-specific stuff
-.idea/**/workspace.xml
-.idea/**/tasks.xml
-.idea/**/usage.statistics.xml
-.idea/**/dictionaries
-.idea/**/shelf
+## Batch Testing
 
-# AWS User-specific
-.idea/**/aws.xml
+The repo includes a batch testing script for generating and validating many puzzles.
 
-# Generated files
-.idea/**/contentModel.xml
+Example:
 
-# Sensitive or high-churn files
-.idea/**/dataSources/
-.idea/**/dataSources.ids
-.idea/**/dataSources.local.xml
-.idea/**/sqlDataSources.xml
-.idea/**/dynamic.xml
-.idea/**/uiDesigner.xml
-.idea/**/dbnavigator.xml
+    python scripts/batch_test_boards.py --boards 1000 --visible 32 --max-attempts 1000
 
-# Gradle
-.idea/**/gradle.xml
-.idea/**/libraries
+The script reports:
 
-# Gradle and Maven with auto-import
-# When using Gradle or Maven with auto-import, you should exclude module files,
-# since they will be recreated, and may cause churn.  Uncomment if using
-# auto-import.
-# .idea/artifacts
-# .idea/compiler.xml
-# .idea/jarRepositories.xml
-# .idea/modules.xml
-# .idea/*.iml
-# .idea/modules
-# *.iml
-# *.ipr
+- Requested board count
+- Visible clue count
+- Successful boards
+- Failed boards
+- Total run time
+- Average time per board
+- Slowest board time
 
-# CMake
-cmake-build-*/
+This was used to stress-test the generator and confirm that the current clue counts are reliable for this prototype.
 
-# Mongo Explorer plugin
-.idea/**/mongoSettings.xml
+## Project Structure
 
-# File-based project format
-*.iws
+    python-sudoku/
+      app.py
+      sudoku_engine.py
+      requirements.txt
+      pytest.ini
+      scripts/
+        batch_test_boards.py
+        manual_validator_check.py
+      tests/
+        test_api.py
+        test_difficulty.py
+        test_puzzle.py
+        test_solver.py
+        test_unique_puzzle.py
+        test_validator.py
+      templates/
+        index.html
+      static/
+        style.css
+        sudoku-dev.js
 
-# IntelliJ
-out/
+## Setup
 
-# mpeltonen/sbt-idea plugin
-.idea_modules/
+Create a virtual environment:
 
-# JIRA plugin
-atlassian-ide-plugin.xml
+    python -m venv .venv
 
-# Cursive Clojure plugin
-.idea/replstate.xml
+Activate it on Windows PowerShell:
 
-# SonarLint plugin
-.idea/sonarlint/
+    .venv\Scripts\Activate.ps1
 
-# Crashlytics plugin (for Android Studio and IntelliJ)
-com_crashlytics_export_strings.xml
-crashlytics.properties
-crashlytics-build.properties
-fabric.properties
+Activate it on Mac/Linux:
 
-# Editor-based Rest Client
-.idea/httpRequests
+    source .venv/bin/activate
 
-# Android studio 3.1+ serialized cache file
-.idea/caches/build_file_checksums.ser
+Install dependencies:
 
-# idea folder, uncomment if you don't need it
- .idea/
+    pip install -r requirements.txt
+
+## Run the App
+
+    python app.py
+
+Open the app in a browser:
+
+    http://127.0.0.1:5000
+
+Difficulty can be selected with query strings:
+
+    http://127.0.0.1:5000/?difficulty=easy
+    http://127.0.0.1:5000/?difficulty=medium
+    http://127.0.0.1:5000/?difficulty=hard
+
+## Gameplay Notes
+
+- Select a cell and choose a number from the number pad.
+- Correct entries are validated against the generated solution.
+- Wrong entries are shown visually.
+- Notes mode allows pencil marks without increasing the move count.
+- The timer starts on the first number entry or note entry.
+- Pause mode stops the timer and hides the board.
+- Light/dark mode is saved in local storage.
+- The puzzle is complete when all cells match the generated solution.
+
+## Why This Project Exists
+
+This project was built to explore and prove Sudoku generation, validation, and gameplay logic in Python before carrying the idea into a more polished web-game environment.
+
+The Python version is intentionally a prototype/reference build. It is not currently intended to become the final mobile or production version. Future work will likely happen in a JavaScript version designed specifically for EddiesGames.xyz or a similar browser-game platform.
+
+## Future Ideas
+
+Possible future work for the JavaScript/browser-game version:
+
+- Mobile-first layout
+- Saved game state
+- Daily puzzle mode
+- Share results
+- Leaderboard integration
+- More advanced difficulty scoring
+- Better visual polish
+- Production-ready accessibility pass
+- Integration with the existing EddiesGames.xyz game wrapper
+
+## License
+
+This project is intended as a personal learning and portfolio project.
